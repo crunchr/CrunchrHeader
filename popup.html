@@ -25,7 +25,14 @@
 
     <main class="workspace">
       <aside class="sidebar">
-        <button id="turn-off" class="off-control" type="button">Off</button>
+        <label class="extension-toggle">
+          <span class="extension-toggle-copy">
+            <strong>Extension</strong>
+            <span id="extension-status">Off</span>
+          </span>
+          <input id="extension-enabled" type="checkbox" role="switch" aria-label="Turn extension on" />
+          <span class="switch-track" aria-hidden="true"></span>
+        </label>
         <div class="sidebar-heading">
           <span>Profiles</span>
           <button

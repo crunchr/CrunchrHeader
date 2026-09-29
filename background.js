@@ -20,10 +20,11 @@ async function installRules(state) {
 
 async function updateToolbar(state) {
   const activeProfile = HeaderProfiles.getActiveProfile(state);
-  await chrome.action.setBadgeText({ text: activeProfile ? 'ON' : '' });
+  const isApplied = state.enabled && activeProfile;
+  await chrome.action.setBadgeText({ text: isApplied ? 'ON' : '' });
   await chrome.action.setBadgeBackgroundColor({ color: '#2563eb' });
   await chrome.action.setTitle({
-    title: activeProfile ? `CrunchrHeader — ${activeProfile.name}` : 'CrunchrHeader — off',
+    title: isApplied ? `CrunchrHeader — ${activeProfile.name}` : 'CrunchrHeader — off',
   });
 }
 
@@ -39,7 +40,7 @@ async function synchronizeRules() {
 async function applyState(candidate) {
   const proposed = HeaderProfiles.normalizeState(candidate);
   const activeProfile = HeaderProfiles.getActiveProfile(proposed);
-  const errors = activeProfile ? HeaderProfiles.validateProfile(activeProfile) : [];
+  const errors = proposed.enabled && activeProfile ? HeaderProfiles.validateProfile(activeProfile) : [];
   if (errors.length > 0) throw new Error(errors.join(' '));
 
   const { currentRules, rules } = await installRules(proposed);

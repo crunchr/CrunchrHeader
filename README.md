@@ -4,7 +4,7 @@ A standalone Chrome Manifest V3 extension for applying reusable request and resp
 
 ## What it does
 
-- Keeps one profile active at a time, with a clear global **Off** state.
+- Keeps the selected profile while a clear **On/Off** switch controls whether it is applied.
 - Modifies request or response headers with `set`, `append`, and `remove` operations.
 - Lets every rule target its own Chrome URL filters and excluded domains. Rules apply to every request type matching the URL scope.
 - Stores profiles locally, with duplication, reordering, JSON export, and merge-or-replace import.

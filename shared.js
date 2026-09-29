@@ -8,7 +8,7 @@
 
   const STORAGE_KEY = 'headerProfilesState';
   const SELECTED_PROFILE_KEY = 'selectedProfileId';
-  const SCHEMA_VERSION = 3;
+  const SCHEMA_VERSION = 4;
   const MAX_DYNAMIC_HEADER_RULES = 5000;
   const RESOURCE_TYPES = [
     'main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font',
@@ -50,7 +50,7 @@
 
   /** Return the initial state: one inactive Development profile. */
   function createDefaultState() {
-    return { schemaVersion: SCHEMA_VERSION, activeProfileId: null, profiles: [createProfile('Development')] };
+    return { schemaVersion: SCHEMA_VERSION, enabled: false, activeProfileId: null, profiles: [createProfile('Development')] };
   }
 
   /** Trim and deduplicate URL filters, falling back when the input is not a list. */
@@ -134,8 +134,12 @@
       activeProfileId = profiles.find((profile) => profile.legacyEnabled)?.id ?? null;
     }
     if (!profiles.some((profile) => profile.id === activeProfileId)) activeProfileId = null;
+    const enabled = typeof state.enabled === 'boolean'
+      ? state.enabled
+      : Boolean(activeProfileId);
     return {
       schemaVersion: SCHEMA_VERSION,
+      enabled,
       activeProfileId,
       profiles: profiles.map(({ legacyEnabled, ...profile }) => profile),
     };
@@ -156,7 +160,7 @@
     return normalizedState;
   }
 
-  /** Look up the active profile, returning null for the global Off state. */
+  /** Look up the profile selected for application, whether enabled or not. */
   function getActiveProfile(state) {
     return state.profiles.find((profile) => profile.id === state.activeProfileId) ?? null;
   }
@@ -220,6 +224,7 @@
    * Invalid profiles and the Off state produce no rules.
    */
   function compileRules(state) {
+    if (!state.enabled) return [];
     const activeProfile = getActiveProfile(state);
     if (!activeProfile || validateProfile(activeProfile).length > 0) return [];
     let ruleId = 1;

@@ -37,7 +37,7 @@ async function importProfiles(file) {
     const parsed = JSON.parse(await file.text());
     if (!parsed || !Array.isArray(parsed.profiles)) throw new Error('The file does not contain a profiles array.');
     const total = await globalThis.CrunchrHeaderUI.importState(parsed, importMode.value);
-    showStatus(`${total} profiles available. Imported profiles are off until you activate one.`);
+    showStatus(`${total} profiles available. Choose a profile and switch the extension on to apply it.`);
   } catch (error) {
     showStatus(`Import failed: ${error.message}`, true);
   }

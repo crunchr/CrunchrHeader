@@ -20,7 +20,8 @@ const elements = {
   ruleList: document.querySelector("#rule-list"),
   saveProfile: document.querySelector("#save-profile"),
   saveStatus: document.querySelector("#save-status"),
-  turnOff: document.querySelector("#turn-off"),
+  extensionEnabled: document.querySelector("#extension-enabled"),
+  extensionStatus: document.querySelector("#extension-status"),
   validationErrors: document.querySelector("#validation-errors"),
 };
 
@@ -71,7 +72,12 @@ function profileSummary(profile) {
 /** Rebuild the profile list and reflect selection plus the globally active profile. */
 function renderProfiles() {
   elements.profiles.replaceChildren();
-  elements.turnOff.classList.toggle("active", state.activeProfileId === null);
+  elements.extensionEnabled.checked = state.enabled;
+  elements.extensionEnabled.setAttribute(
+    "aria-label",
+    state.enabled ? "Turn extension off" : "Turn extension on",
+  );
+  elements.extensionStatus.textContent = state.enabled ? "On" : "Off";
   state.profiles.forEach((profile) => {
     const row = document.createElement("div");
     row.className = "profile-row";
@@ -329,7 +335,7 @@ async function saveSelectedProfile() {
     showErrors(errors);
     return false;
   }
-  if (isSelectedProfileActive() && !(await ensureProfileAccess(profile))) {
+  if (state.enabled && isSelectedProfileActive() && !(await ensureProfileAccess(profile))) {
     showErrors([
       "Chrome needs site access before this active profile can be applied.",
     ]);
@@ -362,13 +368,32 @@ async function activateProfile(profileId) {
     showErrors(errors);
     return;
   }
-  // Start permission negotiation before an awaited save so Chrome still sees
-  // the radio-button change as the initiating user gesture.
-  const accessRequest = ensureProfileAccess(profile);
+  // Start permission negotiation before any awaited save so Chrome still sees
+  // the profile radio change as the initiating user gesture.
+  const accessRequest = state.enabled ? ensureProfileAccess(profile) : null;
   if (dirty && !(await saveSelectedProfile())) {
     renderProfiles();
     return;
   }
+  // Selecting a profile while switched off only remembers the choice. Site
+  // access is requested when the user turns the extension on.
+  if (!state.enabled) {
+    const previousActiveProfileId = state.activeProfileId;
+    state.activeProfileId = profileId;
+    try {
+      await persistState();
+      selectedProfileId = profileId;
+      renderProfiles();
+      renderEditor();
+      markSaved("Profile selected — extension is off");
+    } catch (error) {
+      state.activeProfileId = previousActiveProfileId;
+      showErrors([error.message]);
+      renderProfiles();
+    }
+    return;
+  }
+  // Request permissions directly from the radio change gesture.
   if (!(await accessRequest)) {
     showErrors(["Site access was not granted, so this profile remains off."]);
     renderProfiles();
@@ -393,19 +418,30 @@ async function activateProfile(profileId) {
   }
 }
 
-/** Turn header changes off globally while preserving the profile definitions. */
-async function turnOff() {
+/** Toggle rule application without changing the selected profile. */
+async function setExtensionEnabled(enabled) {
   const profile = getSelectedProfile();
   if (profile && dirty) applyEditorValues(profile);
-  const previousActiveProfileId = state.activeProfileId;
-  state.activeProfileId = null;
+  if (enabled && state.activeProfileId) {
+    const activeProfile = state.profiles.find(
+      (candidate) => candidate.id === state.activeProfileId,
+    );
+    const accessRequest = ensureProfileAccess(activeProfile);
+    if (!(await accessRequest)) {
+      elements.extensionEnabled.checked = false;
+      showErrors(["Chrome needs site access before this profile can be applied."]);
+      return;
+    }
+  }
+  const previousEnabled = state.enabled;
+  state.enabled = enabled;
   try {
     await persistState();
     renderProfiles();
     renderEditor();
-    markSaved("Header modification is off");
+    markSaved(enabled ? "Extension is on" : "Extension is off");
   } catch (error) {
-    state.activeProfileId = previousActiveProfileId;
+    state.enabled = previousEnabled;
     renderProfiles();
     showErrors([error.message]);
   }
@@ -491,8 +527,8 @@ elements.profileName.addEventListener("input", markDirty);
 elements.saveProfile.addEventListener("click", () => {
   void saveSelectedProfile();
 });
-elements.turnOff.addEventListener("click", () => {
-  void turnOff();
+elements.extensionEnabled.addEventListener("change", () => {
+  void setExtensionEnabled(elements.extensionEnabled.checked);
 });
 elements.newProfile.addEventListener("click", () => {
   void createProfile();

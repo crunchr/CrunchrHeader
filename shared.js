@@ -10,6 +10,11 @@
   const SELECTED_PROFILE_KEY = 'selectedProfileId';
   const SCHEMA_VERSION = 3;
   const MAX_DYNAMIC_HEADER_RULES = 5000;
+  const RESOURCE_TYPES = [
+    'main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font',
+    'object', 'xmlhttprequest', 'ping', 'csp_report', 'media',
+    'websocket', 'webtransport', 'webbundle', 'other',
+  ];
   const APPENDABLE_REQUEST_HEADERS = new Set([
     'accept', 'accept-encoding', 'accept-language', 'access-control-request-headers',
     'cache-control', 'connection', 'content-language', 'cookie', 'forwarded', 'if-match',
@@ -222,7 +227,7 @@
     return activeProfile.rules.flatMap((rule, sourceIndex) => {
       if (!rule.enabled) return [];
       return rule.includePatterns.map((urlFilter) => {
-        const condition = { urlFilter };
+        const condition = { urlFilter, resourceTypes: RESOURCE_TYPES };
         if (rule.excludedDomains.length > 0) condition.excludedRequestDomains = rule.excludedDomains;
         const operation = { header: rule.header.trim(), operation: rule.operation };
         if (rule.operation !== 'remove') operation.value = rule.value;

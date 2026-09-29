@@ -249,19 +249,15 @@
       for (const rawPattern of rule.includePatterns) {
         const pattern = rawPattern.trim();
         if (pattern === '*') return allOrigins;
-        const domainMatch = pattern.match(/^\|\|([^/^*]+)(?:[\/^]|$)/);
-        const urlMatch = pattern.match(/^\|?(https?):\/\/([^/:^*]+)(?:[/:^]|$)/);
-        const simpleDomainMatch = pattern.match(/^([a-z0-9.-]+)$/i);
-        if (domainMatch) {
+        // A host is safe to extract only when the filter starts at the URL's
+        // domain and includes a boundary after the hostname.
+        const domainMatch = pattern.match(/^\|\|([a-z0-9.-]+)(?::\d+)?[\/^]/i);
+        const urlMatch = pattern.match(/^\|(https?):\/\/([a-z0-9.-]+)(?::\d+)?[\/^]/i);
+        if (domainMatch && DOMAIN_PATTERN.test(domainMatch[1])) {
           origins.add(`http://*.${domainMatch[1]}/*`);
           origins.add(`https://*.${domainMatch[1]}/*`);
-        } else if (urlMatch) {
+        } else if (urlMatch && DOMAIN_PATTERN.test(urlMatch[2])) {
           origins.add(`${urlMatch[1]}://${urlMatch[2]}/*`);
-        } else if (simpleDomainMatch) {
-          origins.add(`http://*.${simpleDomainMatch[1]}/*`);
-          origins.add(`https://*.${simpleDomainMatch[1]}/*`);
-        } else if (pattern.includes('*')) {
-          return allOrigins;
         } else {
           return allOrigins;
         }

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CrunchrHeader</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Header profiles</p>
+        <h1>CrunchrHeader</h1>
+      </div>
+      <button id="open-options" class="icon-button" type="button" title="Open full settings" aria-label="Open full settings">↗</button>
+    </header>
+
+    <main class="workspace">
+      <aside class="sidebar">
+        <button id="turn-off" class="off-control" type="button">Off</button>
+        <div class="sidebar-heading">
+          <span>Profiles</span>
+          <button id="new-profile" class="icon-button" type="button" aria-label="Add profile">+</button>
+        </div>
+        <div id="profiles" class="profile-list"></div>
+      </aside>
+
+      <section id="editor" class="editor" hidden>
+        <div class="editor-heading">
+          <label class="name-field">
+            <span>Profile name</span>
+            <input id="profile-name" type="text" maxlength="80" autocomplete="off">
+          </label>
+          <div class="editor-actions">
+            <button id="move-up" class="text-button" type="button" title="Move profile up">↑</button>
+            <button id="move-down" class="text-button" type="button" title="Move profile down">↓</button>
+            <button id="duplicate-profile" class="text-button" type="button">Duplicate</button>
+            <button id="delete-profile" class="text-button danger" type="button">Delete</button>
+          </div>
+        </div>
+
+        <div class="rules-heading">
+          <div>
+            <strong>Header rules</strong>
+            <span id="rule-count"></span>
+          </div>
+          <div class="add-rule-actions">
+            <button id="add-request-rule" class="secondary-button" type="button">+ Request</button>
+            <button id="add-response-rule" class="secondary-button" type="button">+ Response</button>
+          </div>
+        </div>
+
+        <div id="rule-list" class="rule-list"></div>
+        <p id="validation-errors" class="validation-errors" role="alert" hidden></p>
+
+        <footer class="editor-footer">
+          <span id="save-status" role="status"></span>
+          <button id="save-profile" class="primary-button" type="button">Save & apply</button>
+        </footer>
+      </section>
+
+      <section id="empty-state" class="empty-state" hidden>
+        <strong>Create a profile to get started</strong>
+        <button id="empty-add-profile" class="primary-button" type="button">Create profile</button>
+      </section>
+    </main>
+
+    <script src="shared.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

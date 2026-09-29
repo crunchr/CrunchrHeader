@@ -556,6 +556,9 @@ globalThis.CrunchrHeaderUI = {
       throw new Error(
         `Profile “${invalidProfile.name || "Untitled profile"}” is invalid.`,
       );
+    if (mode === "merge" && dirty && !(await saveSelectedProfile())) {
+      throw new Error("Save or correct the unsaved profile before importing.");
+    }
     const previousState = structuredClone(state);
     const previousSelectedProfileId = selectedProfileId;
     if (mode === "merge") {

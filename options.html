@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CrunchrHeader settings</title>
-    <link rel="stylesheet" href="popup.css">
-    <link rel="stylesheet" href="options.css">
+    <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="options.css" />
   </head>
   <body>
     <header class="app-header">
@@ -14,14 +14,25 @@
         <h1>CrunchrHeader</h1>
       </div>
       <div class="options-actions">
-        <button id="export-button" class="text-button" type="button">Export JSON</button>
+        <button id="export-button" class="text-button" type="button">
+          Export JSON
+        </button>
         <select id="import-mode" aria-label="Import mode">
           <option value="merge">Merge import</option>
           <option value="replace">Replace on import</option>
         </select>
-        <button id="import-button" class="text-button" type="button">Import JSON</button>
-        <input id="import-file" type="file" accept="application/json" hidden>
-        <button id="open-options" class="icon-button hidden-control" type="button" aria-label="Open full settings">↗</button>
+        <button id="import-button" class="text-button" type="button">
+          Import JSON
+        </button>
+        <input id="import-file" type="file" accept="application/json" hidden />
+        <button
+          id="open-options"
+          class="icon-button hidden-control"
+          type="button"
+          aria-label="Open full settings"
+        >
+          ↗
+        </button>
       </div>
     </header>
 
@@ -30,7 +41,14 @@
         <button id="turn-off" class="off-control" type="button">Off</button>
         <div class="sidebar-heading">
           <span>Profiles</span>
-          <button id="new-profile" class="icon-button" type="button" aria-label="Add profile">+</button>
+          <button
+            id="new-profile"
+            class="icon-button"
+            type="button"
+            aria-label="Add profile"
+          >
+            +
+          </button>
         </div>
         <div id="profiles" class="profile-list"></div>
       </aside>
@@ -39,13 +57,40 @@
         <div class="editor-heading">
           <label class="name-field">
             <span>Profile name</span>
-            <input id="profile-name" type="text" maxlength="80" autocomplete="off">
+            <input
+              id="profile-name"
+              type="text"
+              maxlength="80"
+              autocomplete="off"
+            />
           </label>
           <div class="editor-actions">
-            <button id="move-up" class="text-button" type="button" title="Move profile up">↑</button>
-            <button id="move-down" class="text-button" type="button" title="Move profile down">↓</button>
-            <button id="duplicate-profile" class="text-button" type="button">Duplicate</button>
-            <button id="delete-profile" class="text-button danger" type="button">Delete</button>
+            <button
+              id="move-up"
+              class="text-button"
+              type="button"
+              title="Move profile up"
+            >
+              ↑
+            </button>
+            <button
+              id="move-down"
+              class="text-button"
+              type="button"
+              title="Move profile down"
+            >
+              ↓
+            </button>
+            <button id="duplicate-profile" class="text-button" type="button">
+              Duplicate
+            </button>
+            <button
+              id="delete-profile"
+              class="text-button danger"
+              type="button"
+            >
+              Delete
+            </button>
           </div>
         </div>
 
@@ -55,21 +100,42 @@
             <span id="rule-count"></span>
           </div>
           <div class="add-rule-actions">
-            <button id="add-request-rule" class="secondary-button" type="button">+ Request</button>
-            <button id="add-response-rule" class="secondary-button" type="button">+ Response</button>
+            <button
+              id="add-request-rule"
+              class="secondary-button"
+              type="button"
+            >
+              + Request
+            </button>
+            <button
+              id="add-response-rule"
+              class="secondary-button"
+              type="button"
+            >
+              + Response
+            </button>
           </div>
         </div>
         <div id="rule-list" class="rule-list"></div>
-        <p id="validation-errors" class="validation-errors" role="alert" hidden></p>
+        <p
+          id="validation-errors"
+          class="validation-errors"
+          role="alert"
+          hidden
+        ></p>
         <footer class="editor-footer">
           <span id="save-status" role="status"></span>
-          <button id="save-profile" class="primary-button" type="button">Save & apply</button>
+          <button id="save-profile" class="primary-button" type="button">
+            Save
+          </button>
         </footer>
       </section>
 
       <section id="empty-state" class="empty-state" hidden>
         <strong>Create a profile to get started</strong>
-        <button id="empty-add-profile" class="primary-button" type="button">Create profile</button>
+        <button id="empty-add-profile" class="primary-button" type="button">
+          Create profile
+        </button>
       </section>
     </main>
     <p id="import-status" class="import-status" role="status" hidden></p>

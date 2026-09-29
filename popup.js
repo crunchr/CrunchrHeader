@@ -1,7 +1,7 @@
 "use strict";
 
 // The popup is the profile editor: edits update this in-memory state first,
-// then Save validates and persists it before asking the worker to apply rules.
+// then Save asks the worker to apply rules before persisting the state.
 const elements = {
   addRequestRule: document.querySelector("#add-request-rule"),
   addResponseRule: document.querySelector("#add-response-rule"),
@@ -295,9 +295,13 @@ function applyEditorValues(profile) {
   profile.updatedAt = new Date().toISOString();
 }
 
-/** Normalize and persist the popup's current profile state. */
+/** Ask the worker to apply rules and save their matching profile state. */
 async function persistState() {
-  state = await HeaderProfiles.saveState(state);
+  const response = await chrome.runtime.sendMessage({ type: "applyState", state });
+  if (!response?.ok)
+    throw new Error(response?.error || "Chrome could not apply these rules.");
+  state = response.state;
+  return response.ruleCount;
 }
 
 /** Display validation or Chrome errors in the editor's alert area. */
@@ -313,16 +317,6 @@ async function ensureProfileAccess(profile) {
   // Request directly from the click path. Chrome requires this API to retain a
   // user gesture; it resolves without prompting when access is already granted.
   return chrome.permissions.request({ origins });
-}
-
-/** Ask the background worker to replace Chrome's dynamic rules with current state. */
-async function synchronizeRules() {
-  const response = await chrome.runtime.sendMessage({
-    type: "synchronizeRules",
-  });
-  if (!response?.ok)
-    throw new Error(response?.error || "Chrome could not apply these rules.");
-  return response.ruleCount;
 }
 
 /** Validate and save the selected profile, requesting access if it is active. */
@@ -342,9 +336,8 @@ async function saveSelectedProfile() {
     return false;
   }
   elements.validationErrors.hidden = true;
-  await persistState();
   try {
-    const ruleCount = await synchronizeRules();
+    const ruleCount = await persistState();
     renderProfiles();
     markSaved(
       ruleCount > 0 ? `Applied ${ruleCount} Chrome rules` : "Profile saved",
@@ -381,10 +374,10 @@ async function activateProfile(profileId) {
     renderProfiles();
     return;
   }
+  const previousActiveProfileId = state.activeProfileId;
   state.activeProfileId = profileId;
-  await persistState();
   try {
-    const ruleCount = await synchronizeRules();
+    const ruleCount = await persistState();
     selectedProfileId = profileId;
     renderProfiles();
     renderEditor();
@@ -394,8 +387,7 @@ async function activateProfile(profileId) {
         : "Active — no enabled rules",
     );
   } catch (error) {
-    state.activeProfileId = null;
-    await persistState();
+    state.activeProfileId = previousActiveProfileId;
     showErrors([error.message]);
     renderProfiles();
   }
@@ -405,12 +397,18 @@ async function activateProfile(profileId) {
 async function turnOff() {
   const profile = getSelectedProfile();
   if (profile && dirty) applyEditorValues(profile);
+  const previousActiveProfileId = state.activeProfileId;
   state.activeProfileId = null;
-  await persistState();
-  await synchronizeRules();
-  renderProfiles();
-  renderEditor();
-  markSaved("Header modification is off");
+  try {
+    await persistState();
+    renderProfiles();
+    renderEditor();
+    markSaved("Header modification is off");
+  } catch (error) {
+    state.activeProfileId = previousActiveProfileId;
+    renderProfiles();
+    showErrors([error.message]);
+  }
 }
 
 /** Add a new profile, save prior edits, and open the new profile for editing. */
@@ -465,16 +463,26 @@ async function deleteProfile() {
     !window.confirm(`Delete “${profile.name || "Untitled profile"}”?`)
   )
     return;
+  const previousState = structuredClone(state);
+  const previousSelectedProfileId = selectedProfileId;
   state.profiles = state.profiles.filter(
     (candidate) => candidate.id !== profile.id,
   );
   if (state.activeProfileId === profile.id) state.activeProfileId = null;
   selectedProfileId = state.profiles[0]?.id ?? null;
-  await persistState();
+  try {
+    await persistState();
+  } catch (error) {
+    state = previousState;
+    selectedProfileId = previousSelectedProfileId;
+    renderProfiles();
+    renderEditor();
+    showErrors([error.message]);
+    return;
+  }
   await chrome.storage.local.set({
     [HeaderProfiles.SELECTED_PROFILE_KEY]: selectedProfileId,
   });
-  await synchronizeRules();
   renderProfiles();
   renderEditor();
 }
@@ -548,6 +556,8 @@ globalThis.CrunchrHeaderUI = {
       throw new Error(
         `Profile “${invalidProfile.name || "Untitled profile"}” is invalid.`,
       );
+    const previousState = structuredClone(state);
+    const previousSelectedProfileId = selectedProfileId;
     if (mode === "merge") {
       const copies = structuredClone(imported.profiles);
       copies.forEach((profile) => {
@@ -562,11 +572,16 @@ globalThis.CrunchrHeaderUI = {
       state.activeProfileId = null;
     }
     selectedProfileId = state.profiles[0]?.id ?? null;
-    await persistState();
+    try {
+      await persistState();
+    } catch (error) {
+      state = previousState;
+      selectedProfileId = previousSelectedProfileId;
+      throw error;
+    }
     await chrome.storage.local.set({
       [HeaderProfiles.SELECTED_PROFILE_KEY]: selectedProfileId,
     });
-    await synchronizeRules();
     renderProfiles();
     renderEditor();
     return state.profiles.length;

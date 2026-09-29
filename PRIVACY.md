@@ -2,7 +2,7 @@
 
 **Effective date:** September 29, 2026  
 **Developer:** Wouter Sondagh  
-**Privacy contact:** wouter.sondagh@crunchr.com
+**Privacy contact:** crunchrheader@sondagh.net
 
 CrunchrHeader is a Chrome extension for creating and applying user-configured HTTP request and response header profiles to selected websites.
 
@@ -34,7 +34,7 @@ Profile settings remain in Chrome's local extension storage unless you export th
 
 ## Changes and contact
 
-If CrunchrHeader's data practices change, this policy will be updated before the changed practices take effect. For privacy questions, contact wouter.sondagh@crunchr.com.
+If CrunchrHeader's data practices change, this policy will be updated before the changed practices take effect. For privacy questions, contact crunchrheader@sondagh.net.
 
 ## Chrome Web Store Limited Use
 

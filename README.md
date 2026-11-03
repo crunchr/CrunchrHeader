@@ -8,7 +8,10 @@ A standalone Chrome Manifest V3 extension for applying reusable request and resp
 - Modifies request or response headers with `set`, `append`, and `remove` operations.
 - Lets every rule target its own Chrome URL filters and excluded domains. Rules apply to every request type matching the URL scope.
 - Stores profiles locally, with duplication, reordering, JSON export, and merge-or-replace import.
+- Saves every edit automatically in both the popup and settings page, including incomplete entries. Valid changes to the active profile apply immediately; incomplete edits keep the last working rules until corrected.
 - Requests website access only when a profile is activated or an active profile adds a new scope.
+
+If an edit needs additional website access, it is saved automatically and **Grant site access** appears so you can allow Chrome to apply it.
 
 Chrome restricts request-header `append` to a fixed allowlist. The editor prevents unsupported request appends; response appends are supported by Chrome's declarative rules engine.
 
@@ -21,6 +24,8 @@ Chrome restricts request-header `append` to a fixed allowlist. The editor preven
 5. Pin **CrunchrHeader**, then open it from the toolbar.
 
 The extension starts with an inactive Development profile, so it does not alter traffic until you enable and apply a completed rule.
+
+Run the autosave regression checks with `node --test tests/autosave.test.cjs` (Node.js 18 or newer).
 
 ## URL filters
 

@@ -68,6 +68,26 @@ async function applyState(candidate) {
   return { state: savedState, ruleCount: rules.length };
 }
 
+/** Persist every edit; keep the last working rules until the draft can apply. */
+async function autosaveState(candidate) {
+  const proposed = HeaderProfiles.normalizeState(candidate);
+  await chrome.storage.local.set({ [HeaderProfiles.EDITOR_STATE_KEY]: proposed });
+  try {
+    const activeProfile = HeaderProfiles.getActiveProfile(proposed);
+    if (proposed.enabled && activeProfile) {
+      const errors = HeaderProfiles.validateProfile(activeProfile);
+      if (errors.length > 0) throw new Error(errors.join(' '));
+      const origins = HeaderProfiles.getProfileOrigins(activeProfile);
+      if (origins.length > 0 && !(await chrome.permissions.contains({ origins }))) {
+        return { state: proposed, warning: 'Grant site access to apply these changes.', needsAccess: true };
+      }
+    }
+    return await applyState(proposed);
+  } catch (error) {
+    return { state: proposed, warning: error.message };
+  }
+}
+
 /** Serialize updates so a storage event cannot race an in-flight save. */
 function queueTask(task) {
   const synchronization = synchronizationQueue.catch(() => undefined).then(task);
@@ -91,9 +111,9 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type !== 'applyState') return false;
-  queueTask(() => applyState(message.state))
-    .then(({ state, ruleCount }) => sendResponse({ ok: true, state, ruleCount }))
+  if (!['applyState', 'autosaveState'].includes(message?.type)) return false;
+  queueTask(() => message.type === 'autosaveState' ? autosaveState(message.state) : applyState(message.state))
+    .then((result) => sendResponse({ ok: true, ...result }))
     .catch((error) => sendResponse({ ok: false, error: error.message }));
   return true;
 });

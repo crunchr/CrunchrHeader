@@ -7,6 +7,7 @@
   'use strict';
 
   const STORAGE_KEY = 'headerProfilesState';
+  const EDITOR_STATE_KEY = 'headerProfilesEditorState';
   const SELECTED_PROFILE_KEY = 'selectedProfileId';
   const SCHEMA_VERSION = 4;
   const MAX_DYNAMIC_HEADER_RULES = 5000;
@@ -153,10 +154,19 @@
     return state;
   }
 
+  /** Restore edits even when an incomplete profile could not yet be applied. */
+  async function loadEditorState() {
+    const result = await chrome.storage.local.get(EDITOR_STATE_KEY);
+    return result[EDITOR_STATE_KEY] ? normalizeState(result[EDITOR_STATE_KEY]) : loadState();
+  }
+
   /** Normalize settings before saving so storage always contains the current schema. */
   async function saveState(state) {
     const normalizedState = normalizeState(state);
-    await chrome.storage.local.set({ [STORAGE_KEY]: normalizedState });
+    await chrome.storage.local.set({
+      [STORAGE_KEY]: normalizedState,
+      [EDITOR_STATE_KEY]: normalizedState,
+    });
     return normalizedState;
   }
 
@@ -273,6 +283,7 @@
 
   globalScope.HeaderProfiles = {
     APPENDABLE_REQUEST_HEADERS,
+    EDITOR_STATE_KEY,
     MAX_DYNAMIC_HEADER_RULES,
     SCHEMA_VERSION,
     SELECTED_PROFILE_KEY,
@@ -284,6 +295,7 @@
     getActiveProfile,
     getProfileOrigins,
     loadState,
+    loadEditorState,
     normalizeState,
     saveState,
     validateProfile,
